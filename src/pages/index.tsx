@@ -1,30 +1,65 @@
-import type { NextPage } from 'next'
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Head from 'next/head';
+import Image from 'next/image';
+import axios from 'axios';
+import { Gadget } from '../../components/model/gadget';
+import { InferGetServerSidePropsType } from 'next';
+import { redirect } from 'next/dist/server/api-utils';
 
+const API = 'https://my-json-server.typicode.com/training-api/next-course-gadgets/gadgets';
 
-const Home: NextPage = () => {
+//export const getServerSideProps = async() => {
+export const getStaticProps = async() => {
+  try {
+    const {  data  } = await axios.get<Gadget[]>(API)
+    return {
+      props: {
+        data
+      }
+    }
+  } catch(err) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: true
+      }
+    }
+  }
 
+}
+
+function CatalogIndex({ data }: InferGetServerSidePropsType<typeof getStaticProps>) {
   return (
     <>
       <Head>
-        <title>Front End Gadgets</title>
-        <meta name='description' content='Front end gadget is a demo site to learn Next'/>
+        <title>Front End Gadgets - Catalog</title>
+        <meta name="description" content="Frontend gadget is a demo site to learn Next"/>
       </Head>
-      <Image 
-      src="https://www.addlance.com/blog/wp-content/uploads/2019/04/immagini-da-scaricare.jpg"  
-      alt="Faro"
-      width={600}
-      height={600}
-      />
-      <h1 className="text-5xl text-pink-600 font-bold my-5">FrontEnd Gadgets</h1>
-      <Link href="/catalog">
-      <button className="btn btn-primary">VIEW CATALOG</button>
+
+      <h1 className="title">Catalog</h1>
+
+      <div className="flex">
+        {
+          data.map((item: Gadget) => {
+            return (
+              <Link key={item.id} href={`/catalog/${item.id}`} legacyBehavior>
+                <a>
+                  <Image src={item.image} alt={item.title} width={300} height={300} />
+                </a>
+              </Link>
+            )
+          })
+        }
+      </div>
+
+
+      <Link href="/catalog/123" legacyBehavior>
+        <a className="text-pink-500 mt-3">Go to product</a>
       </Link>
+
     </>
   )
 }
 
-export default Home
+export default CatalogIndex;
